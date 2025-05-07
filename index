@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Bubble Sort con Base de Datos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .input-section {
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            min-height: 60px;
+        }
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 15px;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            flex: 1;
+            min-width: 120px;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        button:disabled {
+            background-color: #cccccc !important;
+            cursor: not-allowed;
+        }
+        #generateBtn {
+            background-color: #2196F3;
+        }
+        #generateBtn:hover {
+            background-color: #0b7dda;
+        }
+        #sortBtn {
+            background-color: #4CAF50;
+        }
+        #sortBtn:hover {
+            background-color: #45a049;
+        }
+        #showHistoryBtn {
+            background-color: #9C27B0;
+        }
+        #clearHistoryBtn {
+            background-color: #f44336;
+        }
+        #visualization {
+            margin-top: 20px;
+            min-height: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            background-color: #f9f9f9;
+        }
+        .array-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            height: 300px;
+            gap: 2px;
+            margin-bottom: 20px;
+        }
+        .bar {
+            width: 30px;
+            background-color: #4CAF50;
+            transition: height 0.3s, background-color 0.3s;
+            position: relative;
+            margin: 0 1px;
+        }
+        .bar.comparing {
+            background-color: #FF5722;
+        }
+        .bar.sorted {
+            background-color: #2196F3;
+        }
+        .bar.swapped {
+            background-color: #FFC107;
+        }
+        .bar-value {
+            position: absolute;
+            bottom: -25px;
+            width: 100%;
+            text-align: center;
+            font-size: 12px;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            align-items: center;
+        }
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #speedControl {
+            width: 150px;
+        }
+        .result-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f5e9;
+            border-radius: 4px;
+            display: none;
+        }
+        .history-section {
+            margin-top: 30px;
+            display: none;
+        }
+        .history-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            background-color: white;
+        }
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 10px;
+        }
+        .history-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .step-info {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Visualizador de Bubble Sort con Base de Datos</h1>
+        
+        <div class="input-section">
+            <label for="numbersInput">Ingrese 20 números separados por comas:</label>
+            <textarea id="numbersInput" placeholder="Ejemplo: 5, 3, 8, 4, 2, 7, 1, 10, 6, 9, 15, 12, 18, 14, 11, 20, 16, 13, 17, 19"></textarea>
+        </div>
+        
+        <div class="buttons">
+            <button id="generateBtn">Generar Aleatorios</button>
+            <button id="sortBtn" disabled>Ordenar</button>
+            <button id="showHistoryBtn">Mostrar Historial</button>
+            <button id="clearHistoryBtn">Limpiar Historial</button>
+        </div>
+        
+        <div class="controls">
+            <div class="speed-control">
+                <label for="speedControl">Velocidad:</label>
+                <input type="range" id="speedControl" min="1" max="10" value="5">
+            </div>
+        </div>
+        
+        <div id="visualization">
+            <p>Ingrese los números y haga clic en "Ordenar" para comenzar la visualización.</p>
+        </div>
+        
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-item">
+                <div>Comparaciones:</div>
+                <div id="comparisons">0</div>
+            </div>
+            <div class="stat-item">
+                <div>Intercambios:</div>
+                <div id="swaps">0</div>
+            </div>
+            <div class="stat-item">
+                <div>Tiempo:</div>
+                <div id="time">0 ms</div>
+            </div>
+        </div>
+        
+        <div id="resultSection" class="result-section">
+            <h3>Resultado Final:</h3>
+            <div id="finalResult"></div>
+        </div>
+    </div>
+    
+    <div id="historySection" class="history-section">
+        <h2>Historial de Ordenamientos</h2>
+        <div class="history-container" id="historyList"></div>
+    </div>
+
+    <script>
+        // DOM elements
+        const numbersInput = document.getElementById('numbersInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const sortBtn = document.getElementById('sortBtn');
+        const showHistoryBtn = document.getElementById('showHistoryBtn');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+        const speedControl = document.getElementById('speedControl');
+        const visualization = document.getElementById('visualization');
+        const resultSection = document.getElementById('resultSection');
+        const finalResult = document.getElementById('finalResult');
+        const historySection = document.getElementById('historySection');
+        const historyList = document.getElementById('historyList');
+        const statsSection = document.getElementById('stats');
+        const comparisonsElement = document.getElementById('comparisons');
+        const swapsElement = document.getElementById('swaps');
+        const timeElement = document.getElementById('time');
+
+        // Variables for sorting
+        let array = [];
+        let sorting = false;
+        let sortInterval;
+        let currentStep = 0;
+        let steps = [];
+        let speed = 500;
+        let startTime;
+        let comparisons = 0;
+        let swaps = 0;
+
+        // IndexedDB configuration
+        let db;
+        const DB_NAME = 'BubbleSortDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'sortingHistory';
+
+        // Initialize IndexedDB
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+        request.onupgradeneeded = (event) => {
+            db = event.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                const store = db.createObjectStore(STORE_NAME, {
+                    keyPath: 'id',
+                    autoIncrement: true
+                });
+                
+                store.createIndex('timestamp', 'timestamp', { unique: false });
+                store.createIndex('timeTaken', 'timeTaken', { unique: false });
+            }
+        };
+
+        request.onsuccess = (event) => {
+            db = event.target.result;
+            loadHistory();
+        };
+
+        request.onerror = (event) => {
+            console.error('Error al abrir la base de datos', event);
+        };
+
+        // Event listeners
+        generateBtn.addEventListener('click', generateRandomNumbers);
+        sortBtn.addEventListener('click', startSorting);
+        showHistoryBtn.addEventListener('click', toggleHistory);
+        clearHistoryBtn.addEventListener('click', clearHistory);
+        numbersInput.addEventListener('input', validateInput);
+        speedControl.addEventListener('input', updateSpeed);
+
+        // Initialize
+        updateSpeed();
+
+        function validateInput() {
+            const input = numbersInput.value.trim();
+            const numbers = input.split(',').map(num => num.trim()).filter(num => num !== '');
+            
+            if (numbers.length === 20 && numbers.every(num => !isNaN(num))) {
+                sortBtn.disabled = false;
+            } else {
+                sortBtn.disabled = true;
+            }
+        }
+
+        function generateRandomNumbers() {
+            const randomNumbers = [];
+            for (let i = 0; i < 20; i++) {
+                randomNumbers.push(Math.floor(Math.random() * 100) + 1);
+            }
+            numbersInput.value = randomNumbers.join(', ');
+            sortBtn.disabled = false;
+        }
+
+        function updateSpeed() {
+            speed = 1100 - (speedControl.value * 100);
+            if (sorting) {
+                clearInterval(sortInterval);
+                sortInterval = setInterval(processSortStep, speed);
+            }
+        }
+
+        function startSorting() {
+            if (sorting) return;
+            
+            // Parse input
+            array = numbersInput.value.split(',').map(num => parseInt(num.trim()));
+            
+            // Disable controls
+            numbersInput.disabled = true;
+            generateBtn.disabled = true;
+            sortBtn.disabled = true;
+            sorting = true;
+            
+            // Reset visualization and stats
+            visualization.innerHTML = '';
+            resultSection.style.display = 'none';
+            statsSection.style.display = 'flex';
+            comparisons = 0;
+            swaps = 0;
+            comparisonsElement.textContent = '0';
+            swapsElement.textContent = '0';
+            timeElement.textContent = '0 ms';
+            startTime = performance.now();
+            
+            // Prepare steps for visualization
+            steps = [];
+            const arrayCopy = [...array];
+            bubbleSortWithSteps(arrayCopy);
+            
+            // Start visualization
+            currentStep = 0;
+            renderStep();
+            
+            sortInterval = setInterval(processSortStep, speed);
+        }
+
+        function processSortStep() {
+            currentStep++;
+            if (currentStep < steps.length) {
+                renderStep();
+            } else {
+                finishSorting();
+            }
+        }
+
+        function bubbleSortWithSteps(arr) {
+            let n = arr.length;
+            let swapped;
+            
+            // Initial state
+            steps.push({
+                array: [...arr],
+                comparing: [],
+                swapped: false,
+                sortedIndices: [],
+                comparisons: comparisons,
+                swaps: swaps
+            });
+            
+            for (let i = 0; i < n - 1; i++) {
+                swapped = false;
+                
+                const sortedIndices = [];
+                for (let j = n - i; j < n; j++) {
+                    sortedIndices.push(j);
+                }
+                
+                for (let j = 0; j < n - i - 1; j++) {
+                    comparisons++;
+                    // Comparing step
+                    steps.push({
+                        array: [...arr],
+                        comparing: [j, j+1],
+                        swapped: false,
+                        sortedIndices: [...sortedIndices],
+                        comparisons: comparisons,
+                        swaps: swaps
+                    });
+                    
+                    if (arr[j] > arr[j + 1]) {
+                        swaps++;
+                        // Swap elements
+                        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+                        swapped = true;
+                        
+                        // After swap step
+                        steps.push({
+                            array: [...arr],
+                            comparing: [j, j+1],
+                            swapped: true,
+                            sortedIndices: [...sortedIndices],
+                            comparisons: comparisons,
+                            swaps: swaps
+                        });
+                    }
+                }
+                
+                if (!swapped) break;
+            }
+            
+            // Final sorted state
+            steps.push({
+                array: [...arr],
+                comparing: [],
+                swapped: false,
+                sortedIndices: Array.from({length: n}, (_, i) => i),
+                comparisons: comparisons,
+                swaps: swaps
+            });
+        }
+
+        function renderStep() {
+            const step = steps[currentStep];
+            const arrayContainer = document.createElement('div');
+            arrayContainer.className = 'array-container';
+            
+            // Find max value for scaling
+            const maxValue = Math.max(...step.array, 1);
+            
+            step.array.forEach((num, index) => {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.height = `${(num / maxValue) * 250}px`;
+                
+                const valueLabel = document.createElement('div');
+                valueLabel.className = 'bar-value';
+                valueLabel.textContent = num;
+                bar.appendChild(valueLabel);
+                
+                if (step.comparing.includes(index)) {
+                    bar.classList.add('comparing');
+                }
+                
+                if (step.swapped && (index === step.comparing[0] || index === step.comparing[1])) {
+                    bar.classList.add('swapped');
+                }
+                
+                if (step.sortedIndices.includes(index)) {
+                    bar.classList.add('sorted');
+                }
+                
+                arrayContainer.appendChild(bar);
+            });
+            
+            visualization.innerHTML = '';
+            visualization.appendChild(arrayContainer);
+            
+            // Add step information
+            const stepInfo = document.createElement('div');
+            stepInfo.className = 'step-info';
+            stepInfo.textContent = `Paso ${currentStep + 1} de ${steps.length}`;
+            visualization.appendChild(stepInfo);
+            
+            // Update stats
+            comparisonsElement.textContent = step.comparisons;
+            swapsElement.textContent = step.swaps;
+            timeElement.textContent = `${(performance.now() - startTime).toFixed(0)} ms`;
+        }
+
+        function finishSorting() {
+            clearInterval(sortInterval);
+            sorting = false;
+            
+            // Enable controls
+            numbersInput.disabled = false;
+            generateBtn.disabled = false;
+            
+            // Show final result
+            const sortedArray = steps[steps.length - 1].array;
+            finalResult.textContent = sortedArray.join(', ');
+            resultSection.style.display = 'block';
+            
+            // Save to database
+            saveToDatabase(array, sortedArray);
+        }
+
+        function saveToDatabase(originalArray, sortedArray) {
+            if (!db) return;
+            
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            
+            const endTime = performance.now();
+            const timeTaken = endTime - startTime;
+            
+            const record = {
+                originalArray: originalArray,
+                sortedArray: sortedArray,
+                timestamp: new Date().toISOString(),
+                timeTaken: timeTaken,
+                comparisons: comparisons,
+                swaps: swaps,
+                steps: steps.length
+            };
+            
+            const request = store.add(record);
+            
+            request.onsuccess = () => {
+                loadHistory();
+            };
+            
+            request.onerror = (event) => {
+                console.error('Error al guardar en la base de datos', event);
+            };
+        }
+
+        function toggleHistory() {
+            historySection.style.display = historySection.style.display === 'none' ? 'block' : 'none';
+            if (historySection.style.display === 'block') {
+                loadHistory();
+            }
+        }
+
+        function loadHistory() {
+            if (!db) return;
+            
+            historyList.innerHTML = 'Cargando historial...';
+            
+            const transaction = db.transaction([STORE_NAME], 'readonly');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.getAll();
+            
+            request.onsuccess = (event) => {
+                const records = event.target.result;
+                displayHistory(records);
+            };
+            
+            request.onerror = (event) => {
+                console.error('Error al cargar el historial', event);
+                historyList.innerHTML = 'Error al cargar el historial';
+            };
+        }
+
+        function displayHistory(records) {
+            if (records.length === 0) {
+                historyList.innerHTML = '<p>No hay registros en el historial</p>';
+                return;
+            }
+            
+            historyList.innerHTML = '';
+            
+            records.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            records.forEach(record => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                
+                const date = new Date(record.timestamp).toLocaleString();
+                item.innerHTML = `
+                    <p><strong>Fecha:</strong> ${date}</p>
+                    <p><strong>Original:</strong> ${record.originalArray.join(', ')}</p>
+                    <p><strong>Ordenado:</strong> ${record.sortedArray.join(', ')}</p>
+                    <p><strong>Tiempo:</strong> ${record.timeTaken.toFixed(2)} ms</p>
+                    <p><strong>Comparaciones:</strong> ${record.comparisons} | <strong>Intercambios:</strong> ${record.swaps} | <strong>Pasos:</strong> ${record.steps}</p>
+                `;
+                
+                historyList.appendChild(item);
+            });
+        }
+
+        function clearHistory() {
+            if (!db) return;
+            
+            if (confirm('¿Está seguro que desea borrar todo el historial?')) {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.clear();
+                
+                request.onsuccess = () => {
+                    historyList.innerHTML = '<p>Historial borrado</p>';
+                };
+                
+                request.onerror = (event) => {
+                    console.error('Error al borrar el historial', event);
+                    historyList.innerHTML = 'Error al borrar el historial';
+                };
+            }
+        }
+    </script>
+</body>
+</html>
